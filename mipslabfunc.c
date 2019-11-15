@@ -173,9 +173,11 @@ void display_ball(int x, int y){
 		spi_send_recv(0x10);        //set high nybble of column
 		
 		DISPLAY_CHANGE_TO_DATA_MODE;
-		  
-		for(j = 0; j < 128; j++){      
-      if(y & j) spi_send_recv(1);
+
+    for(j = 0; j < 128; j++){      
+      if(j == x) spi_send_recv((y >> (i*8)) & 0xff);
+      spi_send_recv(0);
+      //if(j == x) spi_send_recv(y >> (i*8) & 0xff)
     }
   }
 }
