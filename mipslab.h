@@ -41,6 +41,8 @@ extern const uint8_t const font[128*8];
 extern const uint8_t const icon[128];
 /* Declare text buffer for display output */
 extern char textbuffer[4][16];
+/* Declare bitmap array for screen */
+extern uint8_t screen[128 * 32];
 
 /* Declare functions written by students.
    Note: Since we declare these functions here,

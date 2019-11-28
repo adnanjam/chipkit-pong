@@ -185,8 +185,8 @@ void display_ball(int x, int y){
 
 
 
-void display_clear(void){
-  int i,j;
+void render(void){
+  int i,j,b;
   for(i = 0; i < 4; i++){
     DISPLAY_CHANGE_TO_COMMAND_MODE;
 
@@ -200,7 +200,16 @@ void display_clear(void){
 		DISPLAY_CHANGE_TO_DATA_MODE;
 		  
 		for(j = 0; j < 128; j++){      
-      spi_send_recv(0);
+      uint8_t byte = 0b000000000;
+      int offset = j+(128*8*i);
+
+      for(b = 0; b < 8; b++){
+        int c = screen[offset + b*128];
+        // Add the pixel value at position b in byte 
+        byte = byte | c << b;
+      }
+      
+      spi_send_recv(byte);
     }
 	
   }

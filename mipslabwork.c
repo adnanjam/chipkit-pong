@@ -25,6 +25,10 @@ int bally = 0x00000001;
 int right = 1;
 int down = 1;
 
+int padAOffset = 13;
+int padBOffset = 13;
+int height = 8;
+
 /* Interrupt Service Routine */
 void user_isr( void ){
   return;
@@ -37,11 +41,39 @@ void labinit( void ){
   // initialize timer 2:
   T2CON = T2CON | 0b01110000;              // Stop Timer and clear control register,// set prescaler at 1:1, internal clock source
   TMR2 = 0x0;               // Clear timer register 
-  PR2 = 8e6 / 1024;             // Load period register 
+  PR2 = 8e6 / 4096;             // Load period register 
   IFSCLR(0) = 0x00000100;  // Clear Timer interrupt status flag 
   T2CONSET = 0x8000;        // Start Timer
 
   return;
+}
+void move_pad(void){
+  int i;
+  for(i = 0; i < height; i++){
+    if(getbtns() == 1){
+      
+      screen[(padAOffset+height)*128 + 128*i] = 0;
+      screen[(padAOffset+height)*128 + 128*i + 1] = 0;
+      padAOffset++;
+      screen[(padAOffset)*128 + 128*i] = 1;
+      screen[(padAOffset)*128 + 128*i + 1] = 1;
+
+
+    }
+    else if(getbtns() == 2){
+      screen[(padAOffset)*128 + 128*i] = 0;
+      screen[(padAOffset)*128 + 128*i + 1] = 0;
+      padAOffset++;
+      screen[(padAOffset+height)*128 + 128*i] = 1;
+      screen[(padAOffset+height)*128 + 128*i + 1] = 1;
+    }
+    else{ 
+      screen[padAOffset*128 + 128*i] = 1;
+      screen[padAOffset*128 + 128*i + 1] = 1;
+    
+      screen[padBOffset*128 + 128*i - 1] = 1;
+      screen[padBOffset*128 + 128*i - 2] = 1;}
+    }
 }
 
 
@@ -58,10 +90,10 @@ void moveX(void){
 void moveY(void){
   if(down == 1){
     bally = bally << 1;
-    if(bally > 0x80000000) down = 0;
+    if(bally == 0x40000000) down = 0;
   }else{
     bally =  bally >> 1;
-    if(bally == 0x0){ down = 1;}
+    if(bally == 0x00000001){ down = 1;}
   }
 }
 
@@ -74,15 +106,13 @@ void labwork( void ){
     count++; 
   }
 
-  if(count == 10){   
-    moveX();
-    moveY();
-    
+  if(count == 5){   
+    move_pad();
     count = 0;
   }
 
-  display_ball(ballx, bally);
-  
+  // display_ball(ballx, bally);
+  render();
   // display_debug(&bally);
 
   // display_clear();
