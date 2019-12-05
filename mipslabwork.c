@@ -31,8 +31,9 @@ int padAOffset = 13;
 int padBOffset = 13;
 int height = 8;
 
-int healthA = 3;
-int healthB = 3;
+int pointsA = 0;
+int pointsB = 0;
+const MAX_SCORE = 3;
 
 /* Interrupt Service Routine */
 void user_isr(void)
@@ -72,14 +73,13 @@ void move_pad(int direction, int *offset, int colOffset1, int colOffset2)
 void move_players(void)
 {
 
-  if (getbtns() == 1)
+  if (getbtns() & 0b0001)
     move_pad(-1, &padAOffset, 0, 1);
-  if (getbtns() == 2)
+  if (getbtns() & 0b0010)
     move_pad(1, &padAOffset, 0, 1);
-
-  if (getbtns() == 4)
+  if (getbtns() & 0b0100)
     move_pad(-1, &padBOffset, -1, -2);
-  if (getbtns() == 8)
+  if (getbtns() & 0b1000)
     move_pad(1, &padBOffset, -1, -2);
 }
 
@@ -102,20 +102,36 @@ void reset_ball(void)
   trigger = 10;
 }
 
+void reset_points(){
+  pointsA = 0;
+  pointsB = 0;
+}
+
+void update_score(int* points){
+  (*points)++;
+  if(*points == MAX_SCORE) {
+    reset_points(points);
+  }
+}
+
 void move_ballX(void)
 {
   if (right == 1)
   {
     ballx++;
-    if (ballx >= 127)
+    if (ballx >= 127){
+      update_score(&pointsA);
       reset_ball();
+    }
   }
 
   if (right == 0)
   {
     ballx--;
-    if (ballx <= 1)
+    if (ballx <= 1){
+      update_score(&pointsB);      
       reset_ball();
+    }
   }
 }
 
@@ -201,10 +217,24 @@ void check_collision()
   }
 }
 
-/* This function is called repetitively from the main program */
-void labwork(void)
-{
+void show_score(int points, int offset){
+  int i; 
+  for(i = 0; i < MAX_SCORE*2; i++){
+    // every second one is blank space
+    int c = i % 2 == 0 ? 0 : 1;
+    
+    if (c == 1 && i > points*2){
+      c = 0;
+    }
 
+    int r;
+    for(r = 3; r < 9; r++)
+      screen[r*128+offset+i] = c;
+  }
+}
+
+void game_screen(void){
+  
   if (IFS(0) & 0x100)
   {
     IFSCLR(0) = 0x100;
@@ -221,20 +251,42 @@ void labwork(void)
 
   if (count == trigger)
   {
+    show_score(pointsA, 32);
+    show_score(pointsB, 96);
+
     show_ball(0);
     move_ballX();
     check_collision();
     move_ballY();
     show_ball(1);
+      
     count = 0;
   }
 
   if (trigger < 1)
     trigger = 1;
 
-  // display_ball(ballx, bally);
   render();
-  // display_debug(&bally);
+}
 
-  // display_clear();
+void highscores_screen(void){
+  display_string(0,"Game 1: 3 - 0");
+  display_string(1,"Game 2: 3 - 0");
+  display_string(2,"Game 3: 3 - 0");
+  display_string(3,"Game 4: 3 - 0");
+  display_update();
+}
+
+
+/* This function is called repetitively from the main program */
+void labwork(void)
+{
+
+  if(getsw() == 1){
+    highscores_screen();
+  }else{
+    game_screen();
+  }
+
+ 
 }
