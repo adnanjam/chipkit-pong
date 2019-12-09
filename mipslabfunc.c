@@ -244,6 +244,7 @@ void display_update(void) {
 	}
 }
 
+
 /* Helper function, local to this file.
    Converts a number to hexadecimal ASCII digits. */
 static void num32asc( char * s, int n ) 

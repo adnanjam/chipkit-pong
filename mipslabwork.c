@@ -11,6 +11,7 @@
    For copyright and licensing, see file COPYING */
 
 #include <stdint.h> /* Declarations of uint_32 and the like */
+#include <string.h>
 #include <stdio.h>
 #include <pic32mx.h> /* Declarations of system-specific addresses etc */
 #include "mipslab.h" /* Declatations for these labs */
@@ -34,6 +35,10 @@ int height = 8;
 int pointsA = 0;
 int pointsB = 0;
 const MAX_SCORE = 3;
+
+int bot = 0;
+
+char highscores[8];
 
 /* Interrupt Service Routine */
 void user_isr(void)
@@ -74,13 +79,25 @@ void move_players(void)
 {
 
   if (getbtns() & 0b0001)
-    move_pad(-1, &padAOffset, 0, 1);
-  if (getbtns() & 0b0010)
+    {
+      move_pad(-1, &padAOffset, 0, 1);
+    }
+  if (getbtns() & 0b0010){
     move_pad(1, &padAOffset, 0, 1);
-  if (getbtns() & 0b0100)
-    move_pad(-1, &padBOffset, -1, -2);
-  if (getbtns() & 0b1000)
-    move_pad(1, &padBOffset, -1, -2);
+  }
+
+  if(bot == 0){
+    if (getbtns() & 0b0100)
+      move_pad(-1, &padBOffset, -1, -2);
+    if (getbtns() & 0b1000)
+      move_pad(1, &padBOffset, -1, -2);
+  }else{
+    if(bally > padBOffset)
+      move_pad(1, &padBOffset, -1, -2);
+    if(bally < padBOffset)
+      move_pad(-1, &padBOffset, -1, -2);
+  }
+  
 }
 
 void show_players(void)
@@ -103,6 +120,13 @@ void reset_ball(void)
 }
 
 void reset_points(){
+  int i;
+  for (i = 3; i > 0; i--){
+    highscores[i*2] = highscores[(i-1)*2];
+    highscores[i*2+1] = highscores[(i-1)*2+1]; 
+  }
+  highscores[0] = pointsA;
+  highscores[1] = pointsB;
   pointsA = 0;
   pointsB = 0;
 }
@@ -242,7 +266,7 @@ void game_screen(void){
     timeoutcunt++;
   }
 
-  if (timeoutcunt == 3)
+  if (timeoutcunt == 6)
   {
     move_players();
     show_players();
@@ -270,10 +294,24 @@ void game_screen(void){
 }
 
 void highscores_screen(void){
-  display_string(0,"Game 1: 3 - 0");
-  display_string(1,"Game 2: 3 - 0");
-  display_string(2,"Game 3: 3 - 0");
-  display_string(3,"Game 4: 3 - 0");
+  int i;
+  for(i = 0; i < 4; i++){
+    char str[13];
+    str[0] = 'G';
+    str[1] = 'a';
+    str[2] = 'm';
+    str[3] = 'e';
+    str[4] = ' ';
+    str[5] = (i+1)+'0';
+    str[6] = ':';
+    str[7] = ' ';
+    str[8] = highscores[2*i]+'0';
+    str[9] = ' ';
+    str[10] = '-';
+    str[11] = ' ';
+    str[12] = highscores[2*i+1]+'0';
+    display_string(i, str);
+  }
   display_update();
 }
 
@@ -284,9 +322,14 @@ void labwork(void)
 
   if(getsw() == 1){
     highscores_screen();
-  }else{
+  }
+  else if(getsw() == 2){
+    bot = 1;
+    game_screen();
+  }
+  else{
+    bot = 0;
     game_screen();
   }
 
- 
 }
