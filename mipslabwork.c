@@ -1,15 +1,3 @@
-/* mipslabwork.c
-
-   This file written 2015 by F Lundevall
-   Updated 2017-04-21 by F Lundevall
-
-   This file should be changed by YOU! So you must
-   add comment(s) here with your name(s) and date(s):
-
-   This file modified 2017-04-31 by Ture Teknolog 
-
-   For copyright and licensing, see file COPYING */
-
 #include <stdint.h> /* Declarations of uint_32 and the like */
 #include <string.h>
 #include <stdio.h>
@@ -79,25 +67,28 @@ void move_players(void)
 {
 
   if (getbtns() & 0b0001)
-    {
-      move_pad(-1, &padAOffset, 0, 1);
-    }
-  if (getbtns() & 0b0010){
+  {
+    move_pad(-1, &padAOffset, 0, 1);
+  }
+  if (getbtns() & 0b0010)
+  {
     move_pad(1, &padAOffset, 0, 1);
   }
 
-  if(bot == 0){
+  if (bot == 0)
+  {
     if (getbtns() & 0b0100)
       move_pad(-1, &padBOffset, -1, -2);
     if (getbtns() & 0b1000)
       move_pad(1, &padBOffset, -1, -2);
-  }else{
-    if(bally > padBOffset)
+  }
+  else
+  {
+    if (bally > padBOffset)
       move_pad(1, &padBOffset, -1, -2);
-    if(bally < padBOffset)
+    if (bally < padBOffset)
       move_pad(-1, &padBOffset, -1, -2);
   }
-  
 }
 
 void show_players(void)
@@ -119,11 +110,13 @@ void reset_ball(void)
   trigger = 10;
 }
 
-void reset_points(){
+void reset_points()
+{
   int i;
-  for (i = 3; i > 0; i--){
-    highscores[i*2] = highscores[(i-1)*2];
-    highscores[i*2+1] = highscores[(i-1)*2+1]; 
+  for (i = 3; i > 0; i--)
+  {
+    highscores[i * 2] = highscores[(i - 1) * 2];
+    highscores[i * 2 + 1] = highscores[(i - 1) * 2 + 1];
   }
   highscores[0] = pointsA;
   highscores[1] = pointsB;
@@ -131,9 +124,11 @@ void reset_points(){
   pointsB = 0;
 }
 
-void update_score(int* points){
+void update_score(int *points)
+{
   (*points)++;
-  if(*points == MAX_SCORE) {
+  if (*points == MAX_SCORE)
+  {
     reset_points(points);
   }
 }
@@ -143,7 +138,8 @@ void move_ballX(void)
   if (right == 1)
   {
     ballx++;
-    if (ballx >= 127){
+    if (ballx >= 127)
+    {
       update_score(&pointsA);
       reset_ball();
     }
@@ -152,8 +148,9 @@ void move_ballX(void)
   if (right == 0)
   {
     ballx--;
-    if (ballx <= 1){
-      update_score(&pointsB);      
+    if (ballx <= 1)
+    {
+      update_score(&pointsB);
       reset_ball();
     }
   }
@@ -241,24 +238,28 @@ void check_collision()
   }
 }
 
-void show_score(int points, int offset){
-  int i; 
-  for(i = 0; i < MAX_SCORE*2; i++){
+void show_score(int points, int offset)
+{
+  int i;
+  for (i = 0; i < MAX_SCORE * 2; i++)
+  {
     // every second one is blank space
     int c = i % 2 == 0 ? 0 : 1;
-    
-    if (c == 1 && i > points*2){
+
+    if (c == 1 && i > points * 2)
+    {
       c = 0;
     }
 
     int r;
-    for(r = 3; r < 9; r++)
-      screen[r*128+offset+i] = c;
+    for (r = 3; r < 9; r++)
+      screen[r * 128 + offset + i] = c;
   }
 }
 
-void game_screen(void){
-  
+void game_screen(void)
+{
+
   if (IFS(0) & 0x100)
   {
     IFSCLR(0) = 0x100;
@@ -283,7 +284,7 @@ void game_screen(void){
     check_collision();
     move_ballY();
     show_ball(1);
-      
+
     count = 0;
   }
 
@@ -293,43 +294,46 @@ void game_screen(void){
   render();
 }
 
-void highscores_screen(void){
+void highscores_screen(void)
+{
   int i;
-  for(i = 0; i < 4; i++){
+  for (i = 0; i < 4; i++)
+  {
     char str[13];
     str[0] = 'G';
     str[1] = 'a';
     str[2] = 'm';
     str[3] = 'e';
     str[4] = ' ';
-    str[5] = (i+1)+'0';
+    str[5] = (i + 1) + '0';
     str[6] = ':';
     str[7] = ' ';
-    str[8] = highscores[2*i]+'0';
+    str[8] = highscores[2 * i] + '0';
     str[9] = ' ';
     str[10] = '-';
     str[11] = ' ';
-    str[12] = highscores[2*i+1]+'0';
+    str[12] = highscores[2 * i + 1] + '0';
     display_string(i, str);
   }
   display_update();
 }
 
-
 /* This function is called repetitively from the main program */
 void labwork(void)
 {
 
-  if(getsw() == 1){
+  if (getsw() == 1)
+  {
     highscores_screen();
   }
-  else if(getsw() == 2){
+  else if (getsw() == 2)
+  {
     bot = 1;
     game_screen();
   }
-  else{
+  else
+  {
     bot = 0;
     game_screen();
   }
-
 }
